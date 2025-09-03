@@ -8,7 +8,7 @@
 
 # usage: .sarus.sh [network_prefix] [start] [end] [options]
 
-###########################################################################################################
+#______________________________________________________________________________________________________________#
 
 
 # +-----------------------------+
@@ -23,10 +23,10 @@ PING_COUNT=1
 SCAN_TYPE="ping"
 
 # text colors
-RED='\033[0;31m'
+red='\033[0;31m'
 grn='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
+yel='\033[1;33m'
+blu='\033[0;34m'
 nc='\033[0m'
 
 
@@ -35,8 +35,9 @@ nc='\033[0m'
 # +-----------------------------+
 # |    Function Definitions     |
 # +-----------------------------+
-sleep 0.5
+
 usage() {
+sleep 0.5
 echo
 echo
 echo -e "    ${grn}Usage:${nc}"
@@ -58,6 +59,12 @@ echo
 }
 
 
+
+################################################################################################################
+
+
+
+
 splash() {
 
 clear
@@ -74,6 +81,158 @@ echo -e "  ${grn}+--------------------------------------------------------------
 
 
 
+################################################################################################################
+
+
+
+
+validate_ip() {
+
+local ip=$1
+local stat=1
+
+if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+OIFS=$IFS
+IFS='.'
+ip=($ip)
+IFS=$OIFS
+[[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 ]]
+stat=$?
+fi
+
+return $stat
+
+}
+
+
+
+################################################################################################################
+
+
+
+validate_number() {
+
+local num=$1
+local min=$2
+local max=$3
+[[ $num =~ ^[0-9]+$ ]] && [ $num -ge $min  ] && [ $num -le $max ]
+
+}
+
+
+
+################################################################################################################
+
+
+
+
+command_exists() {
+
+command -v "$1" >/dev/null 2>&1
+
+}
+
+
+
+
+################################################################################################################
+
+
+
+ping_scan() {
+
+local prefix=$1
+local start=$2
+local end=$3
+
+echo
+echo -e "	${blu}[*] Starting Ping Scan (ICMP Echo Request)...${nc}"
+sleep 0.5
+echo -e "	${yel}[*] Scanning range: $prefix.$start - $prefix.$end ${nc}"
+echo
+
+active_hosts=0
+for host in $(seq $start $end); do
+ip="$prefix.$host"
+if ping -c $PING_COUNT -W $TIMEOUT $ip >/dev/null 2>&1; then
+echo -e "		${grn}[*] Host $ip is ACTIVE${nc}"
+((active_hosts++))
+
+else
+
+echo -e "		${red}[-] Host $ip is inactive${nc}" > /dev/null 2>&1
+
+fi
+done
+echo
+echo -e "	${blu}[*] Ping scan complete. Found $active_hosts active hosts.${nc}"
+
+
+}
+
+
+
+################################################################################################################
+
+
+
+tcp_scan() {
+
+local prefix=$1
+local start=$2
+local end=$3
+local port=$4
+
+if ! command_exists nmap; then
+echo -e "	${red}[ERROR] nmap id required for TCP scans but not installed.${nc}"
+echo    "	Install with: sudo apt install nmap"
+exit 1
+fi
+
+echo -e "	${blu}[*] Starting TCP SYN Scan on port ${port}...${nc}"
+echo -e "	${yel}[*] Scanning range: $prefix.$start - $prefix.$end ${nc}"
+echo
+
+target_range="$prefix.$start-$end"
+
+sudo nmap -sS -p $port --open $target_range 2>/dev/null | grep -E "(Nmap scan|open)"
+
+echo
+echo -e "	${blu}[*] TCP scan complete.${nc}"
+echo
+
+}
+
+
+################################################################################################################
+
+
+
+# +-----------------------------+
+# |    Main Script Execution    |
+# +-----------------------------+
+
 splash
-usage
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
