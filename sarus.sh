@@ -11,10 +11,18 @@
 #______________________________________________________________________________________________________________#
 
 
+
+
+
+
+
+
 # +-----------------------------+
 # |  Configuration & Defaults   |
 # +-----------------------------+
 
+
+#defaults
 DEFAULT_PREFIX="192.168.1"
 DEFAULT_START=1
 DEFAULT_END=254
@@ -22,7 +30,7 @@ TIMEOUT=0.5
 PING_COUNT=1
 SCAN_TYPE="ping"
 
-# text colors
+#text colors
 red='\033[0;31m'
 grn='\033[0;32m'
 yel='\033[1;33m'
@@ -32,9 +40,21 @@ nc='\033[0m'
 
 
 
+
+
+
+
+
+
 # +-----------------------------+
 # |    Function Definitions     |
 # +-----------------------------+
+
+
+
+
+#help section
+
 
 usage() {
 sleep 0.5
@@ -64,6 +84,8 @@ echo
 
 
 
+#splash screen
+
 
 splash() {
 
@@ -81,9 +103,11 @@ echo -e "  ${grn}+--------------------------------------------------------------
 
 
 
+
 ################################################################################################################
 
 
+#inp val for ip
 
 
 validate_ip() {
@@ -106,8 +130,12 @@ return $stat
 
 
 
+
+
 ################################################################################################################
 
+
+#inp val for numbers
 
 
 validate_number() {
@@ -121,9 +149,12 @@ local max=$3
 
 
 
+
+
 ################################################################################################################
 
 
+#command check
 
 
 command_exists() {
@@ -135,8 +166,11 @@ command -v "$1" >/dev/null 2>&1
 
 
 
+
 ################################################################################################################
 
+
+#PING Scan function def
 
 
 ping_scan() {
@@ -172,8 +206,12 @@ echo -e "	${blu}[*] Ping scan complete. Found $active_hosts active hosts.${nc}"
 
 
 
+
+
 ################################################################################################################
 
+
+#TCP SCAN function def
 
 
 tcp_scan() {
@@ -204,7 +242,16 @@ echo
 }
 
 
+
+
 ################################################################################################################
+
+
+
+
+
+
+
 
 
 
@@ -212,7 +259,13 @@ echo
 # |    Main Script Execution    |
 # +-----------------------------+
 
+
+
+
+
 splash
+
+
 
 TCP_PORT=80
 while [[ $# -gt 0  ]]; do
@@ -257,26 +310,55 @@ esac
 done
 
 
+
+#______________________________________________________________________________________________________________#
+
+
+
+
+#interactive mode
+
+echo
+echo
+echo
+
+#experimentation
+
+
+figlet -f small "  Interactive Mode : "
+
+echo
+echo
+
+
+
+
+
 if [[ -z $network_prefix  ]]; then
 read -p "	Enter the network prefix (e.g., 192.168.1) [$DEFAULT_PREFIX]:  " network_prefix
 network_prefix=${network_prefix:-$DEFAULT_PREFIX}
 fi
 
 if [[ -z $start_range  ]]; then
-read -p "       Enter the starting host number (e.g., 1) [$DEFAULT_START]:  " start_range
+read -p "        Enter the starting host number (e.g., 1) [$DEFAULT_START]:  " start_range
 start_range=${start_range:-$DEFAULT_START}
 fi
 
 
 if [[ -z $end_range  ]]; then
-read -p "       Enter the ending host number (e.g., 254) [$DEFAULT_END]:  " end_range
+read -p "        Enter the ending host number (e.g., 254) [$DEFAULT_END]:  " end_range
 end_range=${end_range:-$DEFAULT_END}
 fi
 
 
 
+#______________________________________________________________________________________________________________#
+
+
 
 #input validation
+
+echo
 
 if ! validate_ip "$network_prefix"; then
 echo -e "	${red}[ERROR] Invalid network prefix format. Use something like '192.168.1'${nc}"
@@ -301,37 +383,54 @@ fi
 
 
 
+#______________________________________________________________________________________________________________#
+
+
+
+
 #scan info
 
 
 echo
 echo -e "	${blu}[*] Scan Configuration: ${nc}"
 echo -e "		Network: ${yel}$network_prefix${nc}"
-echo -e "               Range: ${yel}${start_range} - ${end_range}${nc}"
-echo -e "               Type: ${yel}$SCAN_TYPE${nc}"
+echo -e "                Range: ${yel}${start_range} - ${end_range}${nc}"
+echo -e "                Type: ${yel}$SCAN_TYPE${nc}"
 if [ "$SCAN_TYPE" = "tcp" ]; then
-echo -e "               Port: ${yel}$TCP_PORT${nc}"
+echo -e "                Port: ${yel}$TCP_PORT${nc}"
 fi
 
 echo
 
 
 
+#______________________________________________________________________________________________________________#
+
+
+
 
 #large scan confirmation
 
+
+
 total_hosts=$((end_range - start_range + 1))
 if [ $total_hosts -gt 50 ]; then
-read -p "	${blu}[\!] This will scan $total_hosts hosts. Continue? (y/N):  ${nc}" confirm
+read -p "        [!] This will scan ${total_hosts} hosts. Continue? (y/N):  " confirm
 if [[ ! $confirm =~ ^[Yy]$  ]]; then
-echo    "	Scan cancelled."
+echo    "     	Scan cancelled."
 exit 0
 fi
 fi
 
 
 
+#______________________________________________________________________________________________________________#
+
+
+
 #scan start
+
+
 
 start_time=$(date +%s)
 
@@ -350,7 +449,14 @@ esac
 
 
 
+
+#______________________________________________________________________________________________________________#
+
+
+
 #execution time
+
+
 
 end_time=$(date +%s)
 execution_time=$((end_time - start_time))
@@ -359,29 +465,14 @@ echo -e "	${blu}[*] Execution time: ${execution_time} seconds${nc}"
 
 #exit
 
+
+echo
+echo
+echo
 exit 0
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#____________________________________________________END__________________________________________________________#
 
 
