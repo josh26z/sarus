@@ -214,6 +214,155 @@ echo
 
 splash
 
+TCP_PORT=80
+while [[ $# -gt 0  ]]; do
+case $1 in
+
+-h|--help)
+usage
+exit 0
+;;
+
+-p|--ping)
+SCAN_TYPE="ping"
+shift
+;;
+
+-t|--tcp)
+SCAN_TYPE="tcp"
+if [[ -n $2 && ! $2 =~ ^-  ]]; then
+TCP_PORT=$2
+shift 2
+else
+shift
+fi
+;;
+
+*)
+
+if [[ -z $network_prefix  ]]; then
+network_prefix=$1
+
+elif [[ -z $start_range  ]]; then
+start_range=$1
+
+elif [[ -z $end_range  ]]; then
+end_range=$1
+
+fi
+shift
+;;
+
+esac
+done
+
+
+if [[ -z $network_prefix  ]]; then
+read -p "	Enter the network prefix (e.g., 192.168.1) [$DEFAULT_PREFIX]:  " network_prefix
+network_prefix=${network_prefix:-$DEFAULT_PREFIX}
+fi
+
+if [[ -z $start_range  ]]; then
+read -p "       Enter the starting host number (e.g., 1) [$DEFAULT_START]:  " start_range
+start_range=${start_range:-$DEFAULT_START}
+fi
+
+
+if [[ -z $end_range  ]]; then
+read -p "       Enter the ending host number (e.g., 254) [$DEFAULT_END]:  " end_range
+end_range=${end_range:-$DEFAULT_END}
+fi
+
+
+
+
+#input validation
+
+if ! validate_ip "$network_prefix"; then
+echo -e "	${red}[ERROR] Invalid network prefix format. Use something like '192.168.1'${nc}"
+exit 1
+fi
+
+
+if ! validate_number "$start_range" 1 255; then
+echo -e "	${red}[ERROR] Start must be a number between 1 and 255${nc}"
+exit 1
+fi
+
+if ! validate_number "$end_range" 1 255; then
+echo -e "       ${red}[ERROR] End must be a number between 1 and 255${nc}"
+exit 1
+fi
+
+if [ $start_range -gt $end_range ]; then
+echo -e "	${red}[ERROR] Start number cannot be greater than the end number.${nc}"
+exit 1
+fi
+
+
+
+#scan info
+
+
+echo
+echo -e "	${blu}[*] Scan Configuration: ${nc}"
+echo -e "		Network: ${yel}$network_prefix${nc}"
+echo -e "               Range: ${yel}${start_range} - ${end_range}${nc}"
+echo -e "               Type: ${yel}$SCAN_TYPE${nc}"
+if [ "$SCAN_TYPE" = "tcp" ]; then
+echo -e "               Port: ${yel}$TCP_PORT${nc}"
+fi
+
+echo
+
+
+
+
+#large scan confirmation
+
+total_hosts=$((end_range - start_range + 1))
+if [ $total_hosts -gt 50 ]; then
+read -p "	${blu}[\!] This will scan $total_hosts hosts. Continue? (y/N):  ${nc}" confirm
+if [[ ! $confirm =~ ^[Yy]$  ]]; then
+echo    "	Scan cancelled."
+exit 0
+fi
+fi
+
+
+
+#scan start
+
+start_time=$(date +%s)
+
+case $SCAN_TYPE in
+
+"ping")
+ping_scan "$network_prefix" "$start_range" "$end_range"
+;;
+
+
+"tcp")
+tcp_scan "$network_prefix" "$start_range" "$end_range" "$TCP_PORT"
+;;
+
+esac
+
+
+
+#execution time
+
+end_time=$(date +%s)
+execution_time=$((end_time - start_time))
+echo -e "	${blu}[*] Execution time: ${execution_time} seconds${nc}"
+
+
+#exit
+
+exit 0
+
+
+
 
 
 
